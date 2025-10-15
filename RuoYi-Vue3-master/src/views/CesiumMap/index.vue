@@ -3,35 +3,33 @@
     <!-- 地球容器 -->
     <div ref="cesiumContainer" class="map-view"></div>
     <!-- 右键菜单 -->
-   <CesiumContextMenu />
+    <CesiumContextMenu />
+    <DroneControl/>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, shallowRef, onUnmounted } from 'vue'
-import CesiumContextMenu from './components/CesiumContextMenu/index.vue'
-import {createCesiumInstance,setDefaultView,setDefaultPosition,addAirportMarker} from './utils/initCesium'
-import cesiumBus from './utils/cesiumEventBus';
+import { onMounted, onUnmounted, shallowRef } from "vue";
+import CesiumContextMenu from "./components/CesiumContextMenu/index.vue";
+import DroneControl from './components/DroneControl/index.vue'
+import { useInitCesium } from "./hooks/useInitCesium";
+import cesiumBus from "./utils/cesiumEventBus";
 
+// 地球实例容器
+const cesiumContainer = shallowRef(null);
 // 地球实例引用
-const cesiumContainer = shallowRef(null)
-let viewer=null
+let viewer = null;
+const { createCesium,destroyCesium } = useInitCesium();
 
-onMounted(async() => {
-  viewer= await createCesiumInstance(cesiumContainer.value)
-  cesiumBus.setViewer(viewer)
-  // setDefaultView(viewer)
-  addAirportMarker(viewer)
-  setDefaultPosition(viewer)
-})
+onMounted(async () => {
+  viewer = await createCesium(cesiumContainer.value);
+  cesiumBus.setViewer(viewer);
+});
 
 // 组件卸载时销毁地球实例
 onUnmounted(() => {
-  if (viewer) {
-    viewer.destroy()
-    viewer = null
-  }
-})
+  destroyCesium()
+});
 </script>
 
 <style scoped>
