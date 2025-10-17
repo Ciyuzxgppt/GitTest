@@ -15,10 +15,9 @@
 import HistoryTrack from './HistoryTrack';
 import RealtimeTrack from './RealtimeTrack';
 
-const currentTab = ref("histroyTrack");
+const currentTab = ref("realtimeTrack");
 
 const handleTabClick=(value)=>{
-  console.log('value',value)
   currentTab.value=value
 }
 

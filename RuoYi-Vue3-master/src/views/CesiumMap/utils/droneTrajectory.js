@@ -87,8 +87,8 @@ class Drone {
       orientation: new Cesium.VelocityOrientationProperty(this.sampledPosition),
       billboard: {
         image: 'https://picsum.photos/id/101/50/50',
-        width: 30,
-        height: 30,
+        width: 25,
+        height: 25,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM
       }
     });

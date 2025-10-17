@@ -20,11 +20,15 @@ export const useInitCesium = () => {
     })
 
     //准备地形数据
-    const terrainProvider = await Cesium.createWorldTerrainAsync({
-      requestVertexNormals: true,
-      requestWaterMask: true
-    });
-
+    // const terrainProvider = await Cesium.createWorldTerrainAsync({
+    //   requestVertexNormals: true,
+    //   requestWaterMask: true
+    // });
+    const pakImagerProvider = new Cesium.UrlTemplateImageryProvider({
+        url: 'D:\test\cesium\output/{z}/{x}/{y}.png', // 根据pak文件的实际结构调整路径
+        fileExtension: 'png' // 根据实际情况修改
+    })
+    console.log('pakImagerProvider',pakImagerProvider)
     //创建viewer
     viewer = new Cesium.Viewer(cesiumContainerElement, {
       imageryProvider: openStreetMapProvider,
@@ -41,9 +45,18 @@ export const useInitCesium = () => {
       // fullscreenButton: false,      // 隐藏全屏按钮
       // vrButton: false,               // 隐藏VR按钮
 
-      terrainProvider: terrainProvider
+      // terrainProvider: terrainProvider
     })
 
+    // 添加纯蓝色影像图层（覆盖全球）
+    // const blueImagery = new Cesium.SingleTileImageryProvider({
+    //     url: Cesium.buildModuleUrl('Assets/Textures/transparent.png'), // 透明底图作为载体
+    //     rectangle: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90) // 覆盖全球范围
+    // });
+
+    // // 将图层材质设置为蓝色
+    // viewer.imageryLayers.addImageryProvider(blueImagery).material = Cesium.Color.BLUE.withAlpha(0.8);
+    
     // 隐藏 Logo（可选）
     viewer._cesiumWidget._creditContainer.style.display = 'none'
 

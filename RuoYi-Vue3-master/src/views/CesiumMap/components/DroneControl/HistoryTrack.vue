@@ -2,15 +2,15 @@
   <div>
     <!-- 历史轨迹控制界面 -->
     <div class="control-panel">
-      <div class="header">
+      <!-- <div class="header">
         <h3>无人机轨迹控制系统</h3>
         <button @click="handleAddDrone" class="add-btn">
           <i class="fa fa-plus"></i> 添加无人机
         </button>
-      </div>
+      </div> -->
 
       <!-- 无人机选择 -->
-      <div class="drone-selector" v-if="state.drones.length > 0">
+      <!-- <div class="drone-selector" v-if="state.drones.length > 0">
         <label>选择无人机：</label>
         <select v-model="state.activeDroneId" @change="handleDroneChange">
           <option
@@ -21,10 +21,10 @@
             {{ drone.name }} ({{ drone.isPlaying ? "运行中" : "已暂停" }})
           </option>
         </select>
-      </div>
+      </div> -->
 
       <!-- 单无人机控制 -->
-      <div class="single-controls" v-if="state.activeDroneId">
+      <div class="single-controls" style="margin-top:20px;" v-if="state.activeDroneId">
         <div class="btn-group">
           <button @click="handlePlayPause" class="control-btn">
             <i
@@ -65,7 +65,7 @@
       </div>
 
       <!-- 全局控制 -->
-      <div class="global-controls">
+      <!-- <div class="global-controls">
         <div class="btn-group">
           <button @click="handleControlAll" class="global-btn">
             <i :class="isAnyPlaying ? 'fa fa-pause' : 'fa fa-play'"></i>
@@ -75,7 +75,7 @@
             <i class="fa fa-trash"></i> 清除全部
           </button>
         </div>
-      </div>
+      </div> -->
 
       <!-- 状态信息 -->
       <div class="status-info">
@@ -137,7 +137,7 @@ const handleDroneChange = (e) => {
 
 const handlePlayPause = () => {
   const drone = droneSystem.value?.getActiveDrone();
-  console.log(droneSystem.value?.getActiveDrone());
+  // console.log(droneSystem.value?.getActiveDrone());
   if (drone) {
     drone.togglePlay();
   }
