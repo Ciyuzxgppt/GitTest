@@ -14,6 +14,7 @@ import CesiumContextMenu from "./components/CesiumContextMenu/index.vue";
 import DroneControl from './components/DroneControl/index.vue'
 import { useInitCesium } from "./hooks/useInitCesium";
 import cesiumBus from "./utils/cesiumEventBus";
+import './style/cesium.scss'
 
 // 地球实例容器
 const cesiumContainer = shallowRef(null);

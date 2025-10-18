@@ -4,6 +4,8 @@
     <div class="tab-header">
       <div :class="['tab-item',{active:currentTab==='histroyTrack'}]" @click="handleTabClick('histroyTrack')">历史轨迹</div>
       <div :class="['tab-item',{active:currentTab==='realtimeTrack'}]" @click="handleTabClick('realtimeTrack')">实时轨迹</div>
+      <el-button>导入KML文件</el-button>
+      <el-button>导出KML文件</el-button>
     </div>
     <HistoryTrack v-if="currentTab==='histroyTrack'"/>
     <RealtimeTrack v-if="currentTab==='realtimeTrack'"/>
