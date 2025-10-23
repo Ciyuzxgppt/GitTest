@@ -15,16 +15,19 @@ import DroneControl from './components/DroneControl/index.vue'
 import { useInitCesium } from "./hooks/useInitCesium";
 import cesiumBus from "./utils/cesiumEventBus";
 import './style/cesium.scss'
+import CesiumDrawingTool from './utils/drawGraphics'
 
 // 地球实例容器
 const cesiumContainer = shallowRef(null);
 // 地球实例引用
 let viewer = null;
+let drawerTool = null
 const { createCesium,destroyCesium } = useInitCesium();
 
 onMounted(async () => {
   viewer = await createCesium(cesiumContainer.value);
-  cesiumBus.setViewer(viewer);
+  drawerTool= new CesiumDrawingTool(viewer)
+  cesiumBus.setViewer({ viewer, drawerTool });
 });
 
 // 组件卸载时销毁地球实例

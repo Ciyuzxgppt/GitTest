@@ -4,6 +4,7 @@ class CesiumEventBus {
     this.eventMap = new Map(); // 存储事件回调
     this.viewer = null; // 缓存 viewer 实例
     this.isReady = false; // 标记 viewer 是否就绪
+    this.drawerTool = null; //绘制实例
   }
 
   // 监听事件
@@ -34,11 +35,12 @@ class CesiumEventBus {
   }
 
   // 存储 viewer 实例并触发就绪事件
-  setViewer(viewer) {
-    if (viewer && !this.isReady) {
-      this.viewer = viewer;
+  setViewer(options) {
+    if (options.viewer && !this.isReady) {
+      this.viewer = options.viewer;
       this.isReady = true;
-      this.emit('viewerReady', viewer); // 触发就绪事件
+      const args = Object.values(options);
+      this.emit('viewerReady', ...args); // 触发就绪事件
     }
   }
 

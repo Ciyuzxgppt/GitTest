@@ -33,39 +33,40 @@ const clickPosition = ref({
 });
 let eventHandler = null;
 let viewer = null;
+let drawerTool = null
 
 
 const clickDrawPoint = () => { 
   // 创建绘图工具实例
-  const drawer = new CesiumDrawingTool(viewer);
-  drawer.startDrawing('point');
+  // const drawer = new CesiumDrawingTool(viewer);
+  drawerTool.startDrawing('point');
   menuVisible.value=false
 
 };
 const clickDrawLine = () => {
    // 创建绘图工具实例
-  const drawer = new CesiumDrawingTool(viewer);
-  drawer.startDrawing('line');
+  // const drawer = new CesiumDrawingTool(viewer);
+  drawerTool.startDrawing('line');
   menuVisible.value=false
 };
 const clickDrawPolygon = () => { 
    // 创建绘图工具实例
-  const drawer = new CesiumDrawingTool(viewer);
-  drawer.startDrawing('polygon');
+  // const drawer = new CesiumDrawingTool(viewer);
+  drawerTool.startDrawing('polygon');
   menuVisible.value=false
 };
 
 const clickDrawCircle=()=>{
   // 创建绘图工具实例
-  const drawer = new CesiumDrawingTool(viewer);
-  drawer.startDrawing('circle');
+  // const drawer = new CesiumDrawingTool(viewer);
+  drawerTool.startDrawing('circle');
   menuVisible.value=false
 }
 
 const clickDrawRectangle=()=>{
   // 创建绘图工具实例
-  const drawer = new CesiumDrawingTool(viewer);
-  drawer.startDrawing('rectangle');
+  // const drawer = new CesiumDrawingTool(viewer);
+  drawerTool.startDrawing('rectangle');
   menuVisible.value=false
 }
 
@@ -77,8 +78,9 @@ onMounted(() => {
     bindRightClickEvent();
   } else {
     // 监听 viewer 就绪事件（核心：灵活响应初始化完成）
-    const handleViewerReady = (newViewer) => {
+    const handleViewerReady = (newViewer,drawerToolObj) => {
       viewer = newViewer;
+      drawerTool=drawerToolObj
       bindRightClickEvent();
     };
     cesiumBus.on('viewerReady', handleViewerReady);

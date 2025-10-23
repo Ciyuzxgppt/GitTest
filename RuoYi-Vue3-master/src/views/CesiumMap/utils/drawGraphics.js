@@ -11,15 +11,15 @@ class CesiumDrawingTool {
         this.drawingMode = null; // 当前绘制模式
         this.positions = []; // 存储当前绘制的坐标点
         this.isEditing = false; // 是否处于编辑状态
-        this.measureInfo = { length: 0, area: 0,radius:0 }; // 测量信息
-        
+        this.measureInfo = { length: 0, area: 0, radius: 0 }; // 测量信息
+
         // 初始化事件处理器
         this.handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
         this.eventListeners = {}; // 存储已注册的事件监听标识
-        
+
         // 禁用实体聚焦行为
         this.disableEntityFocusBehaviors();
-        
+
         // 创建提示标签
         this.createHintElement();
     }
@@ -32,13 +32,13 @@ class CesiumDrawingTool {
         this.viewer.screenSpaceEventHandler.removeInputAction(
             Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK
         );
-        
+
         // 移除实体点击选择行为
         this.viewer.screenSpaceEventHandler.removeInputAction(
             Cesium.ScreenSpaceEventType.LEFT_CLICK,
             Cesium.KeyboardEventModifier.CTRL
         );
-        
+
         // 安全地移除selectedEntityChanged事件监听器
         if (this.viewer.selectedEntityChanged && typeof this.viewer.selectedEntityChanged.getListeners === 'function') {
             const listeners = this.viewer.selectedEntityChanged.getListeners();
@@ -50,7 +50,7 @@ class CesiumDrawingTool {
                 });
             }
         }
-        
+
         // 禁用实体选择和追踪
         this.viewer.trackedEntity = undefined;
         this.viewer.selectedEntity = undefined;
@@ -82,7 +82,7 @@ class CesiumDrawingTool {
             this.hintElement.style.display = 'none';
             return;
         }
-        
+
         // 基础操作提示
         let actionHint = '';
         switch (this.drawingMode) {
@@ -96,38 +96,38 @@ class CesiumDrawingTool {
                 actionHint = '左键：添加点  右键：撤销上一步 <br> 双击：完成绘制';
                 break;
             case 'rectangle':
-              if(this.positions.length<=0){
-                actionHint = '单击开始绘制';
-              }else{
-                actionHint = '单击完成绘制';
-              }
+                if (this.positions.length <= 0) {
+                    actionHint = '单击开始绘制';
+                } else {
+                    actionHint = '单击完成绘制';
+                }
                 break;
             case 'circle':
-              if(this.positions.length<=0){
-                actionHint = '单击开始绘制';
-              }else{
-                actionHint = '单击完成绘制';
-              }
+                if (this.positions.length <= 0) {
+                    actionHint = '单击开始绘制';
+                } else {
+                    actionHint = '单击完成绘制';
+                }
                 break;
         }
-        
+
         // 测量信息提示
         let measureHint = '';
         if (this.drawingMode === 'line' && this.positions.length >= 1) {
             measureHint = `长度: ${this.measureInfo.length.toFixed(2)}米`;
-        } else if ((this.drawingMode === 'polygon' && this.positions.length >= 2) || 
-                  this.drawingMode === 'rectangle') {
+        } else if ((this.drawingMode === 'polygon' && this.positions.length >= 2) ||
+            this.drawingMode === 'rectangle') {
             measureHint = `面积: ${(this.measureInfo.area / 10000).toFixed(2)}平方米`;
-        } else if(this.drawingMode === 'circle' && this.positions.length >= 1){
+        } else if (this.drawingMode === 'circle' && this.positions.length >= 1) {
             measureHint = `半径: ${this.measureInfo.radius.toFixed(2)}米`;
         }
-        
+
         // 组合提示内容
         let content = actionHint;
         if (measureHint) {
             content += `<br>${measureHint}`;
         }
-        
+
         this.hintElement.innerHTML = content;
         this.hintElement.style.left = `${position.x + 10}px`;
         this.hintElement.style.top = `${position.y + 10}px`;
@@ -140,19 +140,19 @@ class CesiumDrawingTool {
     bindEditEvents() {
         // 先清除可能存在的事件监听
         this.unbindEditEvents();
-        
+
         // 鼠标左键点击 - 绘制点、线、面的顶点
         this.eventListeners.leftClick = this.handler.setInputAction((event) => {
             if (!this.isEditing || !this.drawingMode) return;
-            
+
             const position = this.getClickPosition(event.position);
             if (!position) return;
-            
+
             const cartographic = Cesium.Cartographic.fromCartesian(position);
             const lon = Cesium.Math.toDegrees(cartographic.longitude);
             const lat = Cesium.Math.toDegrees(cartographic.latitude);
             const height = cartographic.height || 0;
-            
+
             // 记录历史用于撤销（点不需要撤销）
             if (this.drawingMode !== 'point') {
                 this.history.push({
@@ -161,7 +161,7 @@ class CesiumDrawingTool {
                     position: [lon, lat, height]
                 });
             }
-            
+
             // 根据不同模式处理点击
             switch (this.drawingMode) {
                 case 'point':
@@ -171,17 +171,17 @@ class CesiumDrawingTool {
                     // 点绘制完成后自动退出编辑模式
                     this.exitEditingMode();
                     break;
-                    
+
                 case 'line':
                     this.positions.push([lon, lat, height]);
                     this.updateTemporaryLine();
                     break;
-                    
+
                 case 'polygon':
                     this.positions.push([lon, lat, height]);
                     this.updateTemporaryPolygon();
                     break;
-                    
+
                 case 'rectangle':
                     if (this.positions.length === 0) {
                         this.positions.push([lon, lat, height]);
@@ -192,7 +192,7 @@ class CesiumDrawingTool {
                         this.exitEditingMode();
                     }
                     break;
-                    
+
                 case 'circle':
                     if (this.positions.length === 0) {
                         this.positions.push([lon, lat, height]);
@@ -210,44 +210,44 @@ class CesiumDrawingTool {
         this.eventListeners.mouseMove = this.handler.setInputAction((event) => {
             // 更新提示
             this.updateHint(event.endPosition);
-            
+
             if (!this.isEditing || !this.drawingMode) return;
             // if (this.positions.length === 0) return;
-            
+
             const position = this.getClickPosition(event.endPosition);
             if (!position) return;
-            
+
             const cartographic = Cesium.Cartographic.fromCartesian(position);
             const lon = Cesium.Math.toDegrees(cartographic.longitude);
             const lat = Cesium.Math.toDegrees(cartographic.latitude);
 
-            
+
             // 更新临时图形
             requestAnimationFrame(() => {
                 switch (this.drawingMode) {
-                  case 'point':
-                    // console.log('11111111111',this.drawingMode)
+                    case 'point':
+                        // console.log('11111111111',this.drawingMode)
                         // 点模式下显示跟随鼠标的预览点
                         this.updateTemporaryPoint([lon, lat, 0]);
                         break;
                     case 'line':
                         if (this.positions.length > 0) {
-                          this.updateTemporaryLine([...this.positions, [lon, lat, 0]]);
+                            this.updateTemporaryLine([...this.positions, [lon, lat, 0]]);
                         }
                         break;
-                        
+
                     case 'polygon':
-                      if (this.positions.length > 0) {
-                        this.updateTemporaryPolygon([...this.positions, [lon, lat, 0]]);
-                      }
+                        if (this.positions.length > 0) {
+                            this.updateTemporaryPolygon([...this.positions, [lon, lat, 0]]);
+                        }
                         break;
-                        
+
                     case 'rectangle':
                         if (this.positions.length === 1) {
                             this.updateTemporaryRectangle(this.positions[0], [lon, lat, 0]);
                         }
                         break;
-                        
+
                     case 'circle':
                         if (this.positions.length === 1) {
                             this.updateTemporaryCircle(this.positions[0], [lon, lat, 0]);
@@ -260,14 +260,14 @@ class CesiumDrawingTool {
         // 双击事件 - 完成绘制或退出编辑模式
         this.eventListeners.doubleClick = this.handler.setInputAction((event) => {
             if (!this.isEditing) return;
-            
+
             // 检查点击位置是否有实体
             const pickedObject = this.viewer.scene.pick(event.position);
             const isOnEntity = Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id);
-            
+
             // 尝试完成当前绘制
             let drawingCompleted = false;
-            
+
             if (this.drawingMode === 'line' && this.positions.length >= 2) {
                 this.finishDrawingLine();
                 drawingCompleted = true;
@@ -279,12 +279,12 @@ class CesiumDrawingTool {
                 // 多边形绘制完成后自动退出编辑模式
                 this.exitEditingMode();
             }
-            
+
             // 如果没有进行绘制操作且点击空白处，则退出编辑模式
             if (!drawingCompleted && !isOnEntity) {
                 this.exitEditingMode();
             }
-            
+
             // 修复：使用Cesium正确的方式阻止事件传播
             this.handler.cancelEvent = true;
         }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
@@ -297,16 +297,16 @@ class CesiumDrawingTool {
             } else {
                 this.handler.cancelEvent = true;
             }
-            
+
             if (!this.isEditing) return;
-            
+
             // 点不需要撤销
             if (this.drawingMode === 'point') {
                 this.clearTemporaryEntities();
                 this.positions = [];
                 return;
             }
-            
+
             // 线和多边形支持撤销上一步
             if ((this.drawingMode === 'line' || this.drawingMode === 'polygon') && this.positions.length > 0) {
                 this.positions.pop();
@@ -343,8 +343,8 @@ class CesiumDrawingTool {
         try {
             const ray = this.viewer.camera.getPickRay(screenPosition);
             if (!ray) return null;
-            return this.viewer.scene.pickPosition(screenPosition) || 
-                   this.viewer.scene.globe.pick(ray, this.viewer.scene);
+            return this.viewer.scene.pickPosition(screenPosition) ||
+                this.viewer.scene.globe.pick(ray, this.viewer.scene);
         } catch (e) {
             console.error('获取点击位置失败:', e);
             return null;
@@ -359,11 +359,11 @@ class CesiumDrawingTool {
         if (this.isEditing) {
             this.exitEditingMode();
         }
-        
+
         this.isEditing = true;
         this.drawingMode = mode;
         this.positions = [];
-        this.measureInfo = { length: 0, area: 0, radius:0 };
+        this.measureInfo = { length: 0, area: 0, radius: 0 };
         this.clearTemporaryEntities();
         this.bindEditEvents();
     }
@@ -376,7 +376,7 @@ class CesiumDrawingTool {
         this.drawingMode = null;
         this.clearTemporaryEntities();
         this.positions = [];
-        this.measureInfo = { length: 0, area: 0, radius:0 };
+        this.measureInfo = { length: 0, area: 0, radius: 0 };
         this.unbindEditEvents();
         this.hintElement.style.display = 'none';
     }
@@ -386,7 +386,7 @@ class CesiumDrawingTool {
      */
     clearTemporaryEntities() {
         if (this.tempEntities.length === 0) return;
-        
+
         const entitiesToRemove = this.tempEntities;
         this.tempEntities = [];
         entitiesToRemove.forEach(entity => {
@@ -407,7 +407,7 @@ class CesiumDrawingTool {
         } else {
             // 否则创建新的临时点
             this.clearTemporaryEntities();
-            
+
             const point = this.viewer.entities.add({
                 position: Cesium.Cartesian3.fromDegrees(coords[0], coords[1], coords[2]),
                 point: {
@@ -417,7 +417,7 @@ class CesiumDrawingTool {
                     outlineWidth: 2
                 }
             });
-            
+
             this.tempEntities.push(point);
         }
     }
@@ -440,7 +440,7 @@ class CesiumDrawingTool {
                 coordinates: coords
             }
         });
-        
+
         this.entities.push(point);
         return point;
     }
@@ -454,21 +454,21 @@ class CesiumDrawingTool {
             this.measureInfo.length = 0;
             return;
         }
-        
+
         this.measureInfo.length = this.calculateLineLength(positions);
-        
+
         if (this.tempEntities.length > 0 && this.tempEntities[0].polyline) {
             this.tempEntities[0].polyline.positions = new Cesium.CallbackProperty(() => {
-                return positions.map(p => 
+                return positions.map(p =>
                     Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                 );
             }, false);
         } else {
             this.clearTemporaryEntities();
-            
+
             const line = this.viewer.entities.add({
                 polyline: {
-                    positions: positions.map(p => 
+                    positions: positions.map(p =>
                         Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                     ),
                     width: 3,
@@ -476,7 +476,7 @@ class CesiumDrawingTool {
                     clampToGround: true
                 }
             });
-            
+
             this.tempEntities.push(line);
         }
     }
@@ -491,11 +491,11 @@ class CesiumDrawingTool {
         }
 
         const totalLength = this.calculateLineLength(this.positions);
-        
+
         const line = this.viewer.entities.add({
             name: `线_${this.entities.length + 1}`,
             polyline: {
-                positions: this.positions.map(p => 
+                positions: this.positions.map(p =>
                     Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                 ),
                 width: 3,
@@ -517,14 +517,14 @@ class CesiumDrawingTool {
                 length: totalLength
             }
         });
-        
+
         const midIndex = Math.floor(this.positions.length / 2);
         line.label.position = Cesium.Cartesian3.fromDegrees(
-            this.positions[midIndex][0], 
-            this.positions[midIndex][1], 
+            this.positions[midIndex][0],
+            this.positions[midIndex][1],
             10
         );
-        
+
         this.entities.push(line);
         this.history.push({
             mode: 'line',
@@ -545,24 +545,24 @@ class CesiumDrawingTool {
             this.measureInfo.area = 0;
             return;
         }
-        
+
         this.measureInfo.area = this.calculatePolygonArea(positions);
-        
+
         if (this.tempEntities.length > 0 && this.tempEntities[0].polygon) {
             this.tempEntities[0].polygon.hierarchy = new Cesium.CallbackProperty(() => {
                 return new Cesium.PolygonHierarchy(
-                    positions.map(p => 
+                    positions.map(p =>
                         Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                     )
                 );
             }, false);
         } else {
             this.clearTemporaryEntities();
-            
+
             const polygon = this.viewer.entities.add({
                 polygon: {
                     hierarchy: new Cesium.PolygonHierarchy(
-                        positions.map(p => 
+                        positions.map(p =>
                             Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                         )
                     ),
@@ -571,7 +571,7 @@ class CesiumDrawingTool {
                     outlineColor: Cesium.Color.GREEN
                 }
             });
-            
+
             this.tempEntities.push(polygon);
         }
     }
@@ -587,12 +587,12 @@ class CesiumDrawingTool {
 
         const area = this.calculatePolygonArea(this.positions);
         const center = this.calculatePolygonCenter(this.positions);
-        
+
         const polygon = this.viewer.entities.add({
             name: `多边形_${this.entities.length + 1}`,
             polygon: {
                 hierarchy: new Cesium.PolygonHierarchy(
-                    this.positions.map(p => 
+                    this.positions.map(p =>
                         Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                     )
                 ),
@@ -614,9 +614,9 @@ class CesiumDrawingTool {
                 area: area
             }
         });
-        
+
         polygon.label.position = Cesium.Cartesian3.fromDegrees(center[0], center[1], 10);
-        
+
         this.entities.push(polygon);
         this.history.push({
             mode: 'polygon',
@@ -637,7 +637,7 @@ class CesiumDrawingTool {
             this.measureInfo.area = 0;
             return;
         }
-        
+
         // 计算矩形四个顶点
         const positions = [
             [origin[0], origin[1], origin[2] || 0],
@@ -646,24 +646,24 @@ class CesiumDrawingTool {
             [origin[0], corner[1], origin[2] || 0],
             [origin[0], origin[1], origin[2] || 0] // 闭合多边形
         ];
-        
+
         this.measureInfo.area = this.calculatePolygonArea(positions);
-        
+
         if (this.tempEntities.length > 0 && this.tempEntities[0].polygon) {
             this.tempEntities[0].polygon.hierarchy = new Cesium.CallbackProperty(() => {
                 return new Cesium.PolygonHierarchy(
-                    positions.map(p => 
+                    positions.map(p =>
                         Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                     )
                 );
             }, false);
         } else {
             this.clearTemporaryEntities();
-            
+
             const rectangle = this.viewer.entities.add({
                 polygon: {
                     hierarchy: new Cesium.PolygonHierarchy(
-                        positions.map(p => 
+                        positions.map(p =>
                             Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                         )
                     ),
@@ -672,7 +672,7 @@ class CesiumDrawingTool {
                     outlineColor: Cesium.Color.ORANGE
                 }
             });
-            
+
             this.tempEntities.push(rectangle);
         }
     }
@@ -688,7 +688,7 @@ class CesiumDrawingTool {
 
         const origin = this.positions[0];
         const corner = this.positions[1];
-        
+
         // 计算矩形四个顶点
         const positions = [
             [origin[0], origin[1], origin[2] || 0],
@@ -697,15 +697,15 @@ class CesiumDrawingTool {
             [origin[0], corner[1], origin[2] || 0],
             [origin[0], origin[1], origin[2] || 0] // 闭合多边形
         ];
-        
+
         const area = this.calculatePolygonArea(positions);
         const center = this.calculatePolygonCenter(positions);
-        
+
         const rectangle = this.viewer.entities.add({
             name: `矩形_${this.entities.length + 1}`,
             polygon: {
                 hierarchy: new Cesium.PolygonHierarchy(
-                    positions.map(p => 
+                    positions.map(p =>
                         Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                     )
                 ),
@@ -727,9 +727,9 @@ class CesiumDrawingTool {
                 area: area
             }
         });
-        
+
         rectangle.label.position = Cesium.Cartesian3.fromDegrees(center[0], center[1], 10);
-        
+
         this.entities.push(rectangle);
         this.history.push({
             mode: 'rectangle',
@@ -750,51 +750,51 @@ class CesiumDrawingTool {
             this.measureInfo.area = 0;
             return;
         }
-        
+
         // 计算半径
         const radius = this.calculateDistance(center, edgePoint);
 
         //更新矩形半径
-        this.measureInfo.radius=radius;
-        
+        this.measureInfo.radius = radius;
+
         // 计算圆形面积
         this.measureInfo.area = Math.PI * radius * radius;
-        
+
         // 创建圆形多边形（用36边近似圆）
         const positions = [];
         const numPoints = 36;
         const centerLon = center[0];
         const centerLat = center[1];
         const earthRadius = 6378137; // 地球半径(米)
-        
+
         for (let i = 0; i <= numPoints; i++) {
             const angle = (i / numPoints) * 2 * Math.PI;
             // 计算经纬度偏移
             const deltaLon = (radius * Math.cos(angle)) / (earthRadius * Math.cos(centerLat * Math.PI / 180)) * (180 / Math.PI);
             const deltaLat = (radius * Math.sin(angle)) / earthRadius * (180 / Math.PI);
-            
+
             positions.push([
                 centerLon + deltaLon,
                 centerLat + deltaLat,
                 center[2] || 0
             ]);
         }
-        
+
         if (this.tempEntities.length > 0 && this.tempEntities[0].polygon) {
             this.tempEntities[0].polygon.hierarchy = new Cesium.CallbackProperty(() => {
                 return new Cesium.PolygonHierarchy(
-                    positions.map(p => 
+                    positions.map(p =>
                         Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                     )
                 );
             }, false);
         } else {
             this.clearTemporaryEntities();
-            
+
             const circle = this.viewer.entities.add({
                 polygon: {
                     hierarchy: new Cesium.PolygonHierarchy(
-                        positions.map(p => 
+                        positions.map(p =>
                             Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                         )
                     ),
@@ -803,7 +803,7 @@ class CesiumDrawingTool {
                     outlineColor: Cesium.Color.PURPLE
                 }
             });
-            
+
             this.tempEntities.push(circle);
         }
     }
@@ -819,38 +819,38 @@ class CesiumDrawingTool {
 
         const center = this.positions[0];
         const edgePoint = this.positions[1];
-        
+
         // 计算半径
         const radius = this.calculateDistance(center, edgePoint);
-        
+
         // 计算圆形面积
         const area = Math.PI * radius * radius;
-        
+
         // 创建圆形多边形（用36边近似圆）
         const positions = [];
         const numPoints = 36;
         const centerLon = center[0];
         const centerLat = center[1];
         const earthRadius = 6378137; // 地球半径(米)
-        
+
         for (let i = 0; i <= numPoints; i++) {
             const angle = (i / numPoints) * 2 * Math.PI;
             // 计算经纬度偏移
             const deltaLon = (radius * Math.cos(angle)) / (earthRadius * Math.cos(centerLat * Math.PI / 180)) * (180 / Math.PI);
             const deltaLat = (radius * Math.sin(angle)) / earthRadius * (180 / Math.PI);
-            
+
             positions.push([
                 centerLon + deltaLon,
                 centerLat + deltaLat,
                 center[2] || 0
             ]);
         }
-        
+
         const circle = this.viewer.entities.add({
             name: `圆形_${this.entities.length + 1}`,
             polygon: {
                 hierarchy: new Cesium.PolygonHierarchy(
-                    positions.map(p => 
+                    positions.map(p =>
                         Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2] || 0)
                     )
                 ),
@@ -875,10 +875,11 @@ class CesiumDrawingTool {
                 area: area
             }
         });
-        
+
         circle.label.position = Cesium.Cartesian3.fromDegrees(center[0], center[1], 10);
-        
+
         this.entities.push(circle);
+        console.log('this.entities', this.entities)
         this.history.push({
             mode: 'circle',
             action: 'complete',
@@ -890,22 +891,376 @@ class CesiumDrawingTool {
     }
 
     /**
+ * 导出KML格式数据 - 完整修复版（包含矩形和圆形）
+ */
+    exportKML(drawingMode) {
+        console.log('this.entities', this.entities);
+
+        // 筛选指定类型的实体
+        const entities = this.entities.filter(entity => {
+            try {
+                return entity.properties &&
+                    entity.properties.getValue &&
+                    entity.properties.getValue().type === drawingMode;
+            } catch (error) {
+                console.error('Error filtering entity:', error);
+                return false;
+            }
+        });
+
+        if (entities.length === 0) {
+            console.warn(`没有找到${this.getDrawingModeName(drawingMode)}类型的实体`);
+            return null;
+        }
+
+        // 创建KML文档
+        let kmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n';
+        kmlContent += '<kml xmlns="http://www.opengis.net/kml/2.2">\n';
+        kmlContent += '  <Document>\n';
+        kmlContent += `    <name>${this.getDrawingModeName(drawingMode)}集合</name>\n`;
+
+        // 添加当前相机视角信息
+        if (this.viewer && this.viewer.camera) {
+            try {
+                const camera = this.viewer.camera;
+                const position = Cesium.Cartographic.fromCartesian(camera.position);
+                const heading = Cesium.Math.toDegrees(camera.heading);
+                const pitch = Cesium.Math.toDegrees(camera.pitch);
+                const roll = Cesium.Math.toDegrees(camera.roll);
+
+                kmlContent += '    <Camera>\n';
+                kmlContent += `      <longitude>${Cesium.Math.toDegrees(position.longitude)}</longitude>\n`;
+                kmlContent += `      <latitude>${Cesium.Math.toDegrees(position.latitude)}</latitude>\n`;
+                kmlContent += `      <altitude>${position.height}</altitude>\n`;
+                kmlContent += `      <heading>${heading}</heading>\n`;
+                kmlContent += `      <tilt>${90 + pitch}</tilt>\n`; // 转换为KML的tilt格式
+                kmlContent += `      <roll>${roll}</roll>\n`;
+                kmlContent += '      <altitudeMode>absolute</altitudeMode>\n';
+                kmlContent += '    </Camera>\n';
+            } catch (error) {
+                console.error('Error adding camera view to KML:', error);
+            }
+        }
+
+        // 添加样式定义 - 包含所有类型
+        kmlContent += '    <Style id="pointStyle">\n';
+        kmlContent += '      <IconStyle>\n';
+        kmlContent += '        <color>ff0000ff</color>\n'; // ARGB: 不透明红色
+        kmlContent += '        <Icon>\n';
+        kmlContent += '          <href>http://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png</href>\n';
+        kmlContent += '        </Icon>\n';
+        kmlContent += '      </IconStyle>\n';
+        kmlContent += '    </Style>\n';
+
+        kmlContent += '    <Style id="lineStyle">\n';
+        kmlContent += '      <LineStyle>\n';
+        kmlContent += '        <color>ff0000ff</color>\n'; // ARGB: 不透明蓝色
+        kmlContent += '        <width>3</width>\n';
+        kmlContent += '      </LineStyle>\n';
+        kmlContent += '    </Style>\n';
+
+        kmlContent += '    <Style id="polygonStyle">\n';
+        kmlContent += '      <PolyStyle>\n';
+        kmlContent += '        <color>4000ff00</color>\n'; // ARGB: 半透明绿色
+        kmlContent += '      </PolyStyle>\n';
+        kmlContent += '      <LineStyle>\n';
+        kmlContent += '        <color>ff00ff00</color>\n'; // ARGB: 不透明绿色
+        kmlContent += '        <width>2</width>\n';
+        kmlContent += '      </LineStyle>\n';
+        kmlContent += '    </Style>\n';
+
+        // 添加矩形样式
+        kmlContent += '    <Style id="rectangleStyle">\n';
+        kmlContent += '      <PolyStyle>\n';
+        kmlContent += '        <color>40ff8800</color>\n'; // ARGB: 半透明橙色
+        kmlContent += '      </PolyStyle>\n';
+        kmlContent += '      <LineStyle>\n';
+        kmlContent += '        <color>ffff8800</color>\n'; // ARGB: 不透明橙色
+        kmlContent += '        <width>2</width>\n';
+        kmlContent += '      </LineStyle>\n';
+        kmlContent += '    </Style>\n';
+
+        // 添加圆形样式
+        kmlContent += '    <Style id="circleStyle">\n';
+        kmlContent += '      <PolyStyle>\n';
+        kmlContent += '        <color>408800ff</color>\n'; // ARGB: 半透明紫色
+        kmlContent += '      </PolyStyle>\n';
+        kmlContent += '      <LineStyle>\n';
+        kmlContent += '        <color>ff8800ff</color>\n'; // ARGB: 不透明紫色
+        kmlContent += '        <width>2</width>\n';
+        kmlContent += '      </LineStyle>\n';
+        kmlContent += '    </Style>\n';
+
+        // 根据不同类型生成KML内容
+        entities.forEach((entity, index) => {
+            try {
+                const name = entity.name || `${this.getDrawingModeName(drawingMode)}_${index + 1}`;
+
+                // 获取实体属性
+                const properties = entity.properties && entity.properties.getValue ?
+                    entity.properties.getValue() : {};
+
+                // 根据类型生成不同的KML
+                switch (drawingMode) {
+                    case 'point':
+                        kmlContent += this.generatePointKML(entity, name, properties);
+                        break;
+                    case 'line':
+                        kmlContent += this.generateLineKML(entity, name, properties);
+                        break;
+                    case 'polygon':
+                        kmlContent += this.generatePolygonKML(entity, name, properties);
+                        break;
+                    case 'rectangle':
+                        kmlContent += this.generateRectangleKML(entity, name, properties);
+                        break;
+                    case 'circle':
+                        kmlContent += this.generateCircleKML(entity, name, properties);
+                        break;
+                }
+            } catch (error) {
+                console.error(`Error generating KML for entity ${index}:`, error);
+            }
+        });
+
+        kmlContent += '  </Document>\n';
+        kmlContent += '</kml>';
+
+        // 调试：输出KML内容
+        console.log('Generated KML:', kmlContent);
+
+        // 创建并下载KML文件
+        this.downloadKMLFile(kmlContent, drawingMode);
+
+        return kmlContent;
+    }
+
+
+    /**
+     * 获取绘制模式的中文名称
+     */
+    getDrawingModeName(mode) {
+        const modeNames = {
+            'point': '点',
+            'line': '线',
+            'polygon': '多边形',
+            'rectangle': '矩形',
+            'circle': '圆形'
+        };
+        return modeNames[mode] || mode;
+    }
+
+    /**
+  * 生成点的KML - 使用正确的样式引用
+  */
+    generatePointKML(entity, name, properties) {
+        const coords = properties.coordinates;
+        if (!coords || coords.length < 2) return '';
+
+        const kmlCoord = `${coords[0]},${coords[1]},${coords[2] || 0}`;
+
+        let kml = '    <Placemark>\n';
+        kml += `      <name>${this.escapeXml(name)}</name>\n`;
+        kml += '      <styleUrl>#pointStyle</styleUrl>\n'; // 引用点样式
+        kml += '      <Point>\n';
+        kml += `        <coordinates>${kmlCoord}</coordinates>\n`;
+        kml += '      </Point>\n';
+        kml += '    </Placemark>\n';
+
+        return kml;
+    }
+
+    /**
+     * 生成线的KML - 使用正确的样式引用
+     */
+    generateLineKML(entity, name, properties) {
+        const coords = properties.coordinates;
+        if (!coords || coords.length < 2) return '';
+
+        let kml = '    <Placemark>\n';
+        kml += `      <name>${this.escapeXml(name)}</name>\n`;
+        kml += '      <styleUrl>#lineStyle</styleUrl>\n'; // 引用线样式
+        kml += '      <LineString>\n';
+        kml += '        <tessellate>1</tessellate>\n';
+        kml += '        <coordinates>\n';
+
+        coords.forEach(coord => {
+            kml += `          ${coord[0]},${coord[1]},${coord[2] || 0}\n`;
+        });
+
+        kml += '        </coordinates>\n';
+        kml += '      </LineString>\n';
+        kml += '    </Placemark>\n';
+
+        return kml;
+    }
+
+    /**
+     * 生成多边形的KML - 使用正确的样式引用
+     */
+    generatePolygonKML(entity, name, properties) {
+        const coords = properties.coordinates;
+        if (!coords || coords.length < 3) return '';
+
+        let kml = '    <Placemark>\n';
+        kml += `      <name>${this.escapeXml(name)}</name>\n`;
+        kml += '      <styleUrl>#polygonStyle</styleUrl>\n'; // 引用多边形样式
+        kml += '      <Polygon>\n';
+        kml += '        <tessellate>1</tessellate>\n';
+        kml += '        <outerBoundaryIs>\n';
+        kml += '          <LinearRing>\n';
+        kml += '            <coordinates>\n';
+
+        coords.forEach(coord => {
+            kml += `              ${coord[0]},${coord[1]},${coord[2] || 0}\n`;
+        });
+
+        kml += '            </coordinates>\n';
+        kml += '          </LinearRing>\n';
+        kml += '        </outerBoundaryIs>\n';
+        kml += '      </Polygon>\n';
+        kml += '    </Placemark>\n';
+
+        return kml;
+    }
+
+    /**
+ * 生成矩形的KML - 单独的方法
+ */
+    generateRectangleKML(entity, name, properties) {
+        const coords = properties.coordinates;
+        if (!coords || coords.length < 4) return '';
+
+        let kml = '    <Placemark>\n';
+        kml += `      <name>${this.escapeXml(name)}</name>\n`;
+        kml += '      <styleUrl>#rectangleStyle</styleUrl>\n'; // 引用矩形样式
+        kml += '      <Polygon>\n';
+        kml += '        <tessellate>1</tessellate>\n';
+        kml += '        <outerBoundaryIs>\n';
+        kml += '          <LinearRing>\n';
+        kml += '            <coordinates>\n';
+
+        coords.forEach(coord => {
+            kml += `              ${coord[0]},${coord[1]},${coord[2] || 0}\n`;
+        });
+
+        kml += '            </coordinates>\n';
+        kml += '          </LinearRing>\n';
+        kml += '        </outerBoundaryIs>\n';
+        kml += '      </Polygon>\n';
+        kml += '    </Placemark>\n';
+
+        return kml;
+    }
+
+    /**
+     * 生成圆形的KML - 使用圆形样式
+     */
+    generateCircleKML(entity, name, properties) {
+        const center = properties.center;
+        const radius = properties.radius;
+
+        if (!center || !radius || center.length < 2) return '';
+
+        // 创建圆形多边形（用36边近似圆）
+        const positions = [];
+        const numPoints = 36;
+        const centerLon = center[0];
+        const centerLat = center[1];
+        const earthRadius = 6378137; // 地球半径(米)
+
+        for (let i = 0; i <= numPoints; i++) {
+            const angle = (i / numPoints) * 2 * Math.PI;
+            // 计算经纬度偏移
+            const deltaLon = (radius * Math.cos(angle)) / (earthRadius * Math.cos(centerLat * Math.PI / 180)) * (180 / Math.PI);
+            const deltaLat = (radius * Math.sin(angle)) / earthRadius * (180 / Math.PI);
+
+            positions.push([
+                centerLon + deltaLon,
+                centerLat + deltaLat,
+                center[2] || 0
+            ]);
+        }
+
+        let kml = '    <Placemark>\n';
+        kml += `      <name>${this.escapeXml(name)}</name>\n`;
+        kml += '      <styleUrl>#circleStyle</styleUrl>\n'; // 引用圆形样式
+        kml += '      <Polygon>\n';
+        kml += '        <tessellate>1</tessellate>\n';
+        kml += '        <outerBoundaryIs>\n';
+        kml += '          <LinearRing>\n';
+        kml += '            <coordinates>\n';
+
+        positions.forEach(coord => {
+            kml += `              ${coord[0]},${coord[1]},${coord[2] || 0}\n`;
+        });
+
+        kml += '            </coordinates>\n';
+        kml += '          </LinearRing>\n';
+        kml += '        </outerBoundaryIs>\n';
+        kml += '      </Polygon>\n';
+        kml += '    </Placemark>\n';
+
+        return kml;
+    }
+
+    /**
+     * 下载KML文件 - 这个方法应该还在
+     */
+    downloadKMLFile(kmlContent, drawingMode) {
+        try {
+            const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${this.getDrawingModeName(drawingMode)}_${new Date().toISOString().slice(0, 10)}.kml`;
+            a.style.display = 'none'; // 隐藏a标签
+            document.body.appendChild(a);
+            a.click();
+
+            // 确保清理
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                console.log('KML文件下载已触发');
+            }, 100);
+        } catch (error) {
+            console.error('下载KML文件失败:', error);
+            alert('下载KML文件失败，请检查控制台日志');
+        }
+    }
+
+    /**
+     * XML特殊字符转义
+     */
+    escapeXml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    }
+
+    /**
      * 计算两点之间的距离(米)
      */
     calculateDistance(point1, point2) {
         if (!point1 || !point2) return 0;
-        
+
         const R = 6371000; // 地球半径(米)
         const φ1 = point1[1] * Math.PI / 180;
         const φ2 = point2[1] * Math.PI / 180;
         const Δφ = (point2[1] - point1[1]) * Math.PI / 180;
         const Δλ = (point2[0] - point1[0]) * Math.PI / 180;
-        
+
         const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                  Math.cos(φ1) * Math.cos(φ2) *
-                  Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        
+
         return R * c;
     }
 
@@ -914,7 +1269,7 @@ class CesiumDrawingTool {
      */
     calculateLineLength(points) {
         if (!points || points.length < 2) return 0;
-        
+
         let totalLength = 0;
         for (let i = 0; i < points.length - 1; i++) {
             totalLength += this.calculateDistance(points[i], points[i + 1]);
@@ -927,23 +1282,23 @@ class CesiumDrawingTool {
      */
     calculatePolygonArea(points) {
         if (!points || points.length < 3) return 0;
-        
+
         const R = 6378137; // WGS84地球半径(米)
         let area = 0;
         const rad = Math.PI / 180;
         const n = points.length;
-        
+
         for (let i = 0; i < n; i++) {
             const j = (i + 1) % n;
             const lon1 = points[i][0] * rad;
             const lat1 = points[i][1] * rad;
             const lon2 = points[j][0] * rad;
             const lat2 = points[j][1] * rad;
-            
+
             const temp = (lon2 - lon1) * (2 + Math.sin(lat1) + Math.sin(lat2));
             area += temp;
         }
-        
+
         area = area * R * R / 2;
         return Math.abs(area);
     }
@@ -953,15 +1308,15 @@ class CesiumDrawingTool {
      */
     calculatePolygonCenter(points) {
         if (!points || points.length === 0) return [0, 0];
-        
+
         let lonSum = 0, latSum = 0;
         const n = points.length;
-        
+
         for (let i = 0; i < n; i++) {
             lonSum += points[i][0];
             latSum += points[i][1];
         }
-        
+
         return [lonSum / n, latSum / n];
     }
 
@@ -985,4 +1340,3 @@ class CesiumDrawingTool {
 
 // 添加默认导出
 export default CesiumDrawingTool;
-    
