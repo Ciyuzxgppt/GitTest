@@ -1,4 +1,3 @@
-
 import { ref, onMounted, onUnmounted } from 'vue';
 import { RealtimeDroneManager } from './../utils/realTimeTrack';
 
@@ -15,7 +14,7 @@ export function useRealtimeDrones(options) {
     viewer, // 从上层传入的Cesium viewer
     initialCount = 3,
     mockInterval = 300,
-    maxTrackPoints = 200
+    maxTrackPoints = 200,
   } = options;
 
   // 初始化管理类（传递viewer）
@@ -25,24 +24,24 @@ export function useRealtimeDrones(options) {
   let mockTimer = null;
 
   /// 在useRealtimeDrones.js中，减小单次移动的偏移量
-const _generateMockPosition = (currentPos = null) => {
-  if (!currentPos) {
-    // 初始位置（保持不变）
-    return {
-      lat: 39.9042,
-      lng: 116.4074,
-      alt: 100 + Math.random() * 50
-    };
-  }
+  const _generateMockPosition = (currentPos = null) => {
+    if (!currentPos) {
+      // 初始位置（保持不变）
+      return {
+        lat: 39.9042,
+        lng: 116.4074,
+        alt: 100 + Math.random() * 50,
+      };
+    }
 
-  // 关键：减小单次移动的步长（从0.0004°降至0.0001°，约10米）
-  const step = 0.00051; // 单次最大移动距离（经纬度方向）
-  return {
-    lat: currentPos.lat +  0.5 * step,
-    lng: currentPos.lng +  0.5 * step,
-    alt: currentPos.alt +  0.5 * 2 // 高度波动也减小
+    // 关键：减小单次移动的步长（从0.0004°降至0.0001°，约10米）
+    const step = 0.00051; // 单次最大移动距离（经纬度方向）
+    return {
+      lat: currentPos.lat + 0.5 * step,
+      lng: currentPos.lng + 0.5 * step,
+      alt: currentPos.alt + 0.5 * 2, // 高度波动也减小
+    };
   };
-};
 
   // 启动模拟（仅定时更新实时位置）
   const startMock = () => {
@@ -51,11 +50,11 @@ const _generateMockPosition = (currentPos = null) => {
       droneManager.createOrUpdateDrone(`drone-${i}`, _generateMockPosition(), maxTrackPoints);
     }
 
-    setDefaultPosition(viewer)
+    setDefaultPosition(viewer);
 
     // 定时更新实时点位
     mockTimer = setInterval(() => {
-      droneManager.getAllDrones().forEach(drone => {
+      droneManager.getAllDrones().forEach((drone) => {
         const newPos = _generateMockPosition(drone.getCurrentPosition());
         droneManager.updateDronePosition(drone.getId(), newPos);
       });
@@ -69,7 +68,7 @@ const _generateMockPosition = (currentPos = null) => {
   };
 
   // 订阅数据更新
-  const unsubscribe = droneManager.subscribeToUpdates(updatedDrones => {
+  const unsubscribe = droneManager.subscribeToUpdates((updatedDrones) => {
     drones.value = updatedDrones;
   });
 
@@ -94,10 +93,9 @@ const _generateMockPosition = (currentPos = null) => {
       //   pitch: Cesium.Math.toRadians(-30),  // 30度俯角（聚焦尖顶）
       //   roll: 0
       // },
-      duration: 3
+      duration: 3,
     });
-
-  }
+  };
   onUnmounted(() => {
     stopMock();
     unsubscribe();
@@ -118,6 +116,6 @@ const _generateMockPosition = (currentPos = null) => {
     removeDrone: (id) => droneManager.removeDrone(id),
     clearAllDrones: () => droneManager.clearAllDrones(),
     startMock,
-    stopMock
+    stopMock,
   };
 }

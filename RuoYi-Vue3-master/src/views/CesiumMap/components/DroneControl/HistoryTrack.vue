@@ -24,30 +24,24 @@
       </div> -->
 
       <!-- 单无人机控制 -->
-      <div class="single-controls" style="margin-top:20px;" v-if="state.activeDroneId">
+      <div v-if="state.activeDroneId" class="single-controls" style="margin-top: 20px">
         <div class="btn-group">
-          <button @click="handlePlayPause" class="control-btn">
-            <i
-              :class="activeDrone?.isPlaying ? 'fa fa-pause' : 'fa fa-play'"
-            ></i>
-            {{ activeDrone?.isPlaying ? "暂停" : "播放" }}
+          <button class="control-btn" @click="handlePlayPause">
+            <i :class="activeDrone?.isPlaying ? 'fa fa-pause' : 'fa fa-play'"></i>
+            {{ activeDrone?.isPlaying ? '暂停' : '播放' }}
           </button>
-          <button @click="handleReset" class="control-btn">
+          <button class="control-btn" @click="handleReset">
             <i class="fa fa-refresh"></i> 重置
           </button>
-          <button @click="handleFocus" class="control-btn">
+          <button class="control-btn" @click="handleFocus">
             <i class="fa fa-crosshairs"></i> 聚焦
           </button>
-          <button @click="handleDestroy" class="control-btn danger">
+          <button class="control-btn danger" @click="handleDestroy">
             <i class="fa fa-trash"></i> 移除
           </button>
-          <button @click="handleFollow" class="control-btn follow-btn">
-            <i
-              :class="
-                activeDrone?.isFollowing ? 'fa fa-check' : 'fa fa-arrows-alt'
-              "
-            ></i>
-            {{ activeDrone?.isFollowing ? "取消跟随" : "跟随" }}
+          <button class="control-btn follow-btn" @click="handleFollow">
+            <i :class="activeDrone?.isFollowing ? 'fa fa-check' : 'fa fa-arrows-alt'"></i>
+            {{ activeDrone?.isFollowing ? '取消跟随' : '跟随' }}
           </button>
         </div>
 
@@ -87,9 +81,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useDroneTrajectories } from "../../hooks/useDroneTrajectories";
-import cesiumBus from "../../utils/cesiumEventBus"; // 事件总线
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useDroneTrajectories } from '../../hooks/useDroneTrajectories';
+import cesiumBus from '../../utils/cesiumEventBus'; // 事件总线
 
 // const viewer = ref(null);
 const droneSystem = ref(null);
@@ -105,7 +99,7 @@ const state = computed(() => {
     : {
         drones: [],
         activeDroneId: null,
-        currentTime: "",
+        currentTime: '',
       };
 });
 
@@ -196,7 +190,7 @@ const init = async (newViewer) => {
   // viewer.value = newViewer;
   // 初始化无人机系统
   droneSystem.value = useDroneTrajectories(newViewer);
-  console.log("droneSystem.value", droneSystem.value);
+  console.log('droneSystem.value', droneSystem.value);
   // 创建初始无人机
   handleAddDrone();
 };
@@ -208,11 +202,11 @@ onMounted(() => {
     init(cesiumBus.getViewer());
   } else {
     const handleReady = (viewer) => init(viewer);
-    cesiumBus.on("viewerReady", handleReady);
+    cesiumBus.on('viewerReady', handleReady);
 
     // 组件卸载时移除监听
     onUnmounted(() => {
-      cesiumBus.off("viewerReady", handleReady);
+      cesiumBus.off('viewerReady', handleReady);
     });
   }
 });
@@ -235,7 +229,6 @@ onUnmounted(() => {
 }
 
 .control-panel {
-  
 }
 
 .header {
@@ -360,68 +353,67 @@ onUnmounted(() => {
 }
 
 .drone-monitor {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .status {
-    margin: 10px 0;
-    padding: 10px;
-    background-color: #f5f5f5;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f5f5f5;
 }
 
 .connected {
-    color: green;
-    font-weight: bold;
+  color: green;
+  font-weight: bold;
 }
 
 .disconnected {
-    color: red;
-    font-weight: bold;
+  color: red;
+  font-weight: bold;
 }
 
 .controls {
-    margin: 20px 0;
-    display: flex;
-    gap: 10px;
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
 }
 
 button {
-    padding: 8px 16px;
-    background-color: #42b983;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  padding: 8px 16px;
+  background-color: #42b983;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 button.danger {
-    background-color: #e53e3e;
+  background-color: #e53e3e;
 }
 
 button.remove-btn {
-    background-color: #f59e0b;
-    margin-top: 10px;
+  background-color: #f59e0b;
+  margin-top: 10px;
 }
 
 .drone-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 
 .drone-item {
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    padding: 15px;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 15px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .position-info p {
-    margin: 5px 0;
+  margin: 5px 0;
 }
 </style>
-    

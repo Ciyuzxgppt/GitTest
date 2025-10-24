@@ -18,7 +18,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import cesiumBus from './../../utils/cesiumEventBus';
-import CesiumDrawingTool from './../../utils/drawGraphics'
+import CesiumDrawingTool from './../../utils/drawGraphics';
 
 // 菜单状态
 const contextMenu = ref(null);
@@ -29,47 +29,44 @@ const menuY = ref(0);
 const clickPosition = ref({
   lon: 0, // 经度
   lat: 0, // 纬度
-  height: 0 // 高度（可选）
+  height: 0, // 高度（可选）
 });
 let eventHandler = null;
 let viewer = null;
-let drawerTool = null
+let drawerTool = null;
 
-
-const clickDrawPoint = () => { 
+const clickDrawPoint = () => {
   // 创建绘图工具实例
   // const drawer = new CesiumDrawingTool(viewer);
   drawerTool.startDrawing('point');
-  menuVisible.value=false
-
+  menuVisible.value = false;
 };
 const clickDrawLine = () => {
-   // 创建绘图工具实例
+  // 创建绘图工具实例
   // const drawer = new CesiumDrawingTool(viewer);
   drawerTool.startDrawing('line');
-  menuVisible.value=false
+  menuVisible.value = false;
 };
-const clickDrawPolygon = () => { 
-   // 创建绘图工具实例
+const clickDrawPolygon = () => {
+  // 创建绘图工具实例
   // const drawer = new CesiumDrawingTool(viewer);
   drawerTool.startDrawing('polygon');
-  menuVisible.value=false
+  menuVisible.value = false;
 };
 
-const clickDrawCircle=()=>{
+const clickDrawCircle = () => {
   // 创建绘图工具实例
   // const drawer = new CesiumDrawingTool(viewer);
   drawerTool.startDrawing('circle');
-  menuVisible.value=false
-}
+  menuVisible.value = false;
+};
 
-const clickDrawRectangle=()=>{
+const clickDrawRectangle = () => {
   // 创建绘图工具实例
   // const drawer = new CesiumDrawingTool(viewer);
   drawerTool.startDrawing('rectangle');
-  menuVisible.value=false
-}
-
+  menuVisible.value = false;
+};
 
 onMounted(() => {
   // 检查 viewer 是否已就绪（避免事件已触发但组件未挂载的情况）
@@ -78,9 +75,9 @@ onMounted(() => {
     bindRightClickEvent();
   } else {
     // 监听 viewer 就绪事件（核心：灵活响应初始化完成）
-    const handleViewerReady = (newViewer,drawerToolObj) => {
+    const handleViewerReady = (newViewer, drawerToolObj) => {
       viewer = newViewer;
-      drawerTool=drawerToolObj
+      drawerTool = drawerToolObj;
       bindRightClickEvent();
     };
     cesiumBus.on('viewerReady', handleViewerReady);
@@ -97,7 +94,7 @@ const bindRightClickEvent = () => {
   if (!viewer) return;
 
   eventHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-  
+
   eventHandler.setInputAction((cesiumEvent) => {
     // 阻止默认右键菜单
     if (cesiumEvent.nativeEvent) {
@@ -118,14 +115,14 @@ const bindRightClickEvent = () => {
       // 3. 将笛卡尔坐标转换为经纬度
       const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
       const lon = Cesium.Math.toDegrees(cartographic.longitude); // 经度（度）
-      const lat = Cesium.Math.toDegrees(cartographic.latitude);  // 纬度（度）
-      const height = cartographic.height || 0;                  // 高度（米）
+      const lat = Cesium.Math.toDegrees(cartographic.latitude); // 纬度（度）
+      const height = cartographic.height || 0; // 高度（米）
 
       // 4. 存储坐标信息（保留6位小数）
       clickPosition.value = {
         lon: Number(lon.toFixed(6)),
         lat: Number(lat.toFixed(6)),
-        height: Number(height.toFixed(2))
+        height: Number(height.toFixed(2)),
       };
     }
 
@@ -137,19 +134,17 @@ const bindRightClickEvent = () => {
   }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 
   // 点击空白处关闭菜单
-  const closeMenu = () => menuVisible.value = false;
+  const closeMenu = () => (menuVisible.value = false);
   document.addEventListener('click', closeMenu);
   onUnmounted(() => document.removeEventListener('click', closeMenu));
-}
-
+};
 
 // 菜单功能实现（省略，同上）
-const handleShowCoord = () => { 
+const handleShowCoord = () => {
   const { lon, lat, height } = clickPosition.value;
   alert(`坐标：\n经度：${lon}\n纬度：${lat}\n高度：${height}米`);
   menuVisible.value = false;
 };
-
 </script>
 
 <style scoped>
@@ -157,20 +152,20 @@ const handleShowCoord = () => {
 .cesium-context-menu {
   /* 1. 定位方式：固定定位，不受父元素滚动影响 */
   position: fixed;
-  
+
   /* 2. 基础样式：白色背景+阴影，确保可见 */
   width: 150px;
   background-color: #ffffff;
   border-radius: 4px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15); /* 阴影增强层次感 */
-  
+
   /* 3. 层级：必须高于地图容器（Cesium默认z-index较低） */
   z-index: 9999; /* 足够大的值，避免被地图覆盖 */
-  
+
   /* 4. 去除默认边距 */
   margin: 0;
   padding: 5px 0;
-  
+
   /* 5. 禁止选中文字 */
   user-select: none;
 }

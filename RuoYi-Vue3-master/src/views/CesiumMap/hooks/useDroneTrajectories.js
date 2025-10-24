@@ -9,17 +9,17 @@ export function useDroneTrajectories(viewer) {
   const uiState = ref({
     drones: [], // 仅包含UI展示所需的无人机信息
     activeDroneId: null,
-    currentTime: ''
+    currentTime: '',
   });
 
   // 同步无人机列表到UI
   const syncDronesToUI = () => {
-    uiState.value.drones = droneManager.getAllDrones().map(drone => ({
+    uiState.value.drones = droneManager.getAllDrones().map((drone) => ({
       id: drone.id,
       name: drone.name,
       isPlaying: drone.isPlaying,
       speed: drone.speed,
-      isFollowing: drone.isFollowing
+      isFollowing: drone.isFollowing,
     }));
     uiState.value.activeDroneId = droneManager.activeDroneId;
   };
@@ -74,6 +74,6 @@ export function useDroneTrajectories(viewer) {
     destroyAll: () => {
       droneManager.destroyAll();
       syncDronesToUI();
-    }
+    },
   };
 }

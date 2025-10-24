@@ -1,4 +1,3 @@
-
 /**
  * 无人机实体类 - 仅负责自身状态和行为
  */
@@ -75,7 +74,7 @@ class Drone {
   _createEntities() {
     // 位置采样属性
     this.sampledPosition = new Cesium.SampledPositionProperty();
-    this.trailData.forEach(point => {
+    this.trailData.forEach((point) => {
       this.sampledPosition.addSample(point.time, point.position);
     });
 
@@ -89,28 +88,31 @@ class Drone {
         image: 'https://picsum.photos/id/101/50/50',
         width: 25,
         height: 25,
-        verticalOrigin: Cesium.VerticalOrigin.BOTTOM
-      }
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+      },
     });
 
     // 轨迹线
     this.trailEntity = this.viewer.entities.add({
       id: `drone-trail-${this.id}`,
       polyline: {
-        positions: this.trailData.map(p => p.position),
+        positions: this.trailData.map((p) => p.position),
         width: 3,
         material: new Cesium.PolylineGlowMaterialProperty({
           glowPower: 0.2,
-          color: this.color
-        })
-      }
+          color: this.color,
+        }),
+      },
     });
   }
 
   // 设置事件监听
   _setupEventListeners() {
     this._clockTickHandler = (clock) => {
-      if (this.isPlaying && Cesium.JulianDate.greaterThanOrEquals(clock.currentTime, this.endTime)) {
+      if (
+        this.isPlaying &&
+        Cesium.JulianDate.greaterThanOrEquals(clock.currentTime, this.endTime)
+      ) {
         this.setPlayState(false);
       }
     };
@@ -123,14 +125,15 @@ class Drone {
 
     // 同步Cesium时钟动画状态
     // 当任何无人机处于播放状态时，时钟推进
-    const anyPlaying = this.manager.getAllDrones().some(drone => drone.isPlaying);
+    const anyPlaying = this.manager.getAllDrones().some((drone) => drone.isPlaying);
     this.viewer.clock.shouldAnimate = anyPlaying;
 
     // 通知状态变化
-    this.onStateChange && this.onStateChange({
-      id: this.id,
-      isPlaying: play
-    });
+    this.onStateChange &&
+      this.onStateChange({
+        id: this.id,
+        isPlaying: play,
+      });
   }
 
   // 切换播放状态
@@ -141,10 +144,11 @@ class Drone {
   // 设置速度
   setSpeed(speed) {
     this.speed = speed;
-    this.onStateChange && this.onStateChange({
-      id: this.id,
-      speed
-    });
+    this.onStateChange &&
+      this.onStateChange({
+        id: this.id,
+        speed,
+      });
   }
 
   // 重置到起点
@@ -167,41 +171,40 @@ class Drone {
       this.startFollowing(); // 调用开始跟随
     }
   }
-  
+
   // 开始跟随（简化版）
   startFollowing() {
     // 避免重复开启跟随
     if (this.isFollowing || !this.entity || !this.viewer) return;
-    
+
     // 直接设置跟踪实体，使用Cesium默认的跟踪视角
     this.viewer.trackedEntity = this.entity;
-    
+
     // 标记跟随状态
     this.isFollowing = true;
-    this.onStateChange && this.onStateChange({
-      id: this.id,
-      isFollowing: this.isFollowing
-    });
+    this.onStateChange &&
+      this.onStateChange({
+        id: this.id,
+        isFollowing: this.isFollowing,
+      });
   }
-  
+
   // 停止跟随（简化版）
   stopFollowing() {
     // 避免重复停止跟随
     if (!this.isFollowing || !this.viewer) return;
-    
+
     // 取消跟踪（Cesium会保持当前相机视角）
     this.viewer.trackedEntity = undefined;
-    
+
     // 清除跟随状态
     this.isFollowing = false;
-    this.onStateChange && this.onStateChange({
-      id: this.id,
-      isFollowing: this.isFollowing
-    });
+    this.onStateChange &&
+      this.onStateChange({
+        id: this.id,
+        isFollowing: this.isFollowing,
+      });
   }
-
- 
- 
 
   // 销毁自身
   destroy() {
@@ -252,7 +255,7 @@ export default class DroneManager {
       ...options,
       id: droneId,
       viewer: this.viewer,
-      manager: this // 直接将管理器传递给无人机
+      manager: this, // 直接将管理器传递给无人机
     });
 
     // 存储实例
@@ -291,13 +294,13 @@ export default class DroneManager {
 
   // 全局控制所有无人机
   controlAll(play) {
-    this.getAllDrones().forEach(drone => drone.setPlayState(play));
+    this.getAllDrones().forEach((drone) => drone.setPlayState(play));
     this.viewer.clock.shouldAnimate = play;
   }
 
   // 全局设置速度
   setAllSpeed(speed) {
-    this.getAllDrones().forEach(drone => drone.setSpeed(speed));
+    this.getAllDrones().forEach((drone) => drone.setSpeed(speed));
     this.viewer.clock.multiplier = speed;
   }
 
@@ -309,7 +312,7 @@ export default class DroneManager {
     let earliestStart = drones[0].startTime;
     let latestEnd = drones[0].endTime;
 
-    drones.forEach(drone => {
+    drones.forEach((drone) => {
       if (Cesium.JulianDate.lessThan(drone.startTime, earliestStart)) {
         earliestStart = drone.startTime;
       }
@@ -343,7 +346,7 @@ export default class DroneManager {
 
   // 销毁所有无人机
   destroyAll() {
-    this.getAllDrones().forEach(drone => drone.destroy());
+    this.getAllDrones().forEach((drone) => drone.destroy());
     this.drones.clear();
     this.activeDroneId = null;
   }

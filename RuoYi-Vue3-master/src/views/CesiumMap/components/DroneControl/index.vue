@@ -1,38 +1,47 @@
 <template>
   <div class="drone-control">
-   <div class="tab">
-    <div class="tab-header">
-      <div :class="['tab-item',{active:currentTab==='histroyTrack'}]" @click="handleTabClick('histroyTrack')">历史轨迹</div>
-      <div :class="['tab-item',{active:currentTab==='realtimeTrack'}]" @click="handleTabClick('realtimeTrack')">实时轨迹</div>
-       <el-upload
-        class="upload-btn"
-        action="#"
-        :auto-upload="false"
-        :on-change="handleFileChange"
-        accept=".kml"
-        :show-file-list="false"
-      >
-        <el-button>导入KML文件</el-button>
-      </el-upload>
-      <el-button @click="handleExportKMLFileClick">导出KML文件</el-button>
+    <div class="tab">
+      <div class="tab-header">
+        <div
+          :class="['tab-item', { active: currentTab === 'histroyTrack' }]"
+          @click="handleTabClick('histroyTrack')"
+        >
+          历史轨迹
+        </div>
+        <div
+          :class="['tab-item', { active: currentTab === 'realtimeTrack' }]"
+          @click="handleTabClick('realtimeTrack')"
+        >
+          实时轨迹
+        </div>
+        <el-upload
+          class="upload-btn"
+          action="#"
+          :auto-upload="false"
+          :on-change="handleFileChange"
+          accept=".kml"
+          :show-file-list="false"
+        >
+          <el-button>导入KML文件</el-button>
+        </el-upload>
+        <el-button @click="handleExportKMLFileClick">导出KML文件</el-button>
+      </div>
+      <HistoryTrack v-if="currentTab === 'histroyTrack'" />
+      <RealtimeTrack v-if="currentTab === 'realtimeTrack'" />
     </div>
-    <HistoryTrack v-if="currentTab==='histroyTrack'"/>
-    <RealtimeTrack v-if="currentTab==='realtimeTrack'"/>
-   </div>
   </div>
 </template>
 
 <script setup>
 import HistoryTrack from './HistoryTrack';
 import RealtimeTrack from './RealtimeTrack';
-import {useKML} from './../../hooks/useKML'
-import cesiumBus from "../../utils/cesiumEventBus"; // 事件总线
-import CesiumDrawingTool from './../../utils/drawGraphics'
+import { useKML } from './../../hooks/useKML';
+import cesiumBus from '../../utils/cesiumEventBus'; // 事件总线
+import CesiumDrawingTool from './../../utils/drawGraphics';
 
-const currentTab = ref("realtimeTrack");
-const kmlObj = ref(null)
-let drawerTool = null
-
+const currentTab = ref('realtimeTrack');
+const kmlObj = ref(null);
+let drawerTool = null;
 
 // 生命周期
 onMounted(() => {
@@ -40,26 +49,26 @@ onMounted(() => {
   if (cesiumBus.isReady) {
     init(cesiumBus.getViewer());
   } else {
-    const handleReady = (viewer,drawerToolObj) => init(viewer,drawerToolObj);
-    cesiumBus.on("viewerReady", handleReady);
+    const handleReady = (viewer, drawerToolObj) => init(viewer, drawerToolObj);
+    cesiumBus.on('viewerReady', handleReady);
 
     // 组件卸载时移除监听
     onUnmounted(() => {
-      cesiumBus.off("viewerReady", handleReady);
+      cesiumBus.off('viewerReady', handleReady);
     });
   }
 });
 
 // 初始化
-const init = (newViewer,drawerToolObj) => {
-  kmlObj.value=useKML(newViewer)
-  console.log('==========================>',drawerToolObj)
-  drawerTool = drawerToolObj
+const init = (newViewer, drawerToolObj) => {
+  kmlObj.value = useKML(newViewer);
+  console.log('==========================>', drawerToolObj);
+  drawerTool = drawerToolObj;
 };
 
 // 处理文件选择
 const handleFileChange = (uploadFile) => {
-  console.log('uploadFile',uploadFile)
+  console.log('uploadFile', uploadFile);
   const file = uploadFile.raw;
   if (!file) return;
 
@@ -70,19 +79,17 @@ const handleFileChange = (uploadFile) => {
     console.error('请选择 KML 或 KMZ 格式的文件');
     return;
   }
-  kmlObj.value.importKML(file)
+  kmlObj.value.importKML(file);
 };
 
-const handleExportKMLFileClick=()=>{
-  console.log('drawerTool',drawerTool)
-  drawerTool.exportKML('circle')
-}
+const handleExportKMLFileClick = () => {
+  console.log('drawerTool', drawerTool);
+  drawerTool.exportKML('circle');
+};
 
-
-const handleTabClick=(value)=>{
-  currentTab.value=value
-}
-
+const handleTabClick = (value) => {
+  currentTab.value = value;
+};
 </script>
 
 <style scoped>
@@ -97,16 +104,15 @@ const handleTabClick=(value)=>{
   border-radius: 8px;
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
 }
-.tab-header{
+.tab-header {
   display: flex;
   align-items: center;
 }
-.tab-item{
+.tab-item {
   margin: 0 10px;
   cursor: pointer;
 }
-.active{
+.active {
   color: red;
 }
 </style>
-    

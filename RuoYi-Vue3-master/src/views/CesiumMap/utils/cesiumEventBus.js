@@ -19,7 +19,7 @@ class CesiumEventBus {
   emit(eventName, ...args) {
     const callbacks = this.eventMap.get(eventName);
     if (callbacks) {
-      callbacks.forEach(callback => callback(...args));
+      callbacks.forEach((callback) => callback(...args));
     }
   }
 
@@ -51,5 +51,5 @@ class CesiumEventBus {
 }
 
 // 导出单例实例（全局唯一）
-const cesiumBus = new CesiumEventBus()
+const cesiumBus = new CesiumEventBus();
 export default cesiumBus;

@@ -7,11 +7,11 @@ export class RealtimeDrone {
     this.id = id;
     this.viewer = viewer;
     this.maxTrackPoints = maxTrackPoints;
-    
+
     // 核心数据：只存实时位置和历史轨迹（无时间采样）
     this.currentPosition = this._formatPosition(initialPosition);
     this.trackPoints = [this.currentPosition]; // 初始轨迹含第一个点
-    
+
     // 可视化相关：直接用静态坐标（无SampledPositionProperty）
     this.entityId = `drone-main-${this.id}`;
     this.trailEntityId = `drone-trail-${this.id}`;
@@ -40,8 +40,8 @@ export class RealtimeDrone {
         width: 25,
         height: 25,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY // 避免被遮挡
-      }
+        disableDepthTestDistance: Number.POSITIVE_INFINITY, // 避免被遮挡
+      },
     });
 
     // 2. 轨迹线实体（实时更新历史点）
@@ -52,9 +52,9 @@ export class RealtimeDrone {
         width: 3,
         material: new Cesium.PolylineGlowMaterialProperty({
           glowPower: 0.3,
-          color: Cesium.Color.RED
-        })
-      }
+          color: Cesium.Color.RED,
+        }),
+      },
     });
   }
 
@@ -85,7 +85,7 @@ export class RealtimeDrone {
       lat: position.lat,
       lng: position.lng,
       alt: position.alt ?? 100,
-      timestamp: Date.now() // 保留时间戳仅用于记录，不关联时间轴
+      timestamp: Date.now(), // 保留时间戳仅用于记录，不关联时间轴
     };
   }
 
@@ -106,46 +106,46 @@ export class RealtimeDrone {
    * @private
    */
   _getTrailCartesians() {
-    return this.trackPoints.map(point => 
+    return this.trackPoints.map((point) =>
       Cesium.Cartesian3.fromDegrees(point.lng, point.lat, point.alt)
     );
   }
 
   /**
- * 简化版方向计算（按最新两个轨迹点的方向）
- * @private
- */
-_getOrientation() {
-  if (this.trackPoints.length < 2) {
-    // 轨迹点不足时，默认朝向北
+   * 简化版方向计算（按最新两个轨迹点的方向）
+   * @private
+   */
+  _getOrientation() {
+    if (this.trackPoints.length < 2) {
+      // 轨迹点不足时，默认朝向北
+      return Cesium.Transforms.headingPitchRollQuaternion(
+        this._getCurrentCartesian(),
+        new Cesium.HeadingPitchRoll(0, 0, 0)
+      );
+    }
+
+    // 有历史轨迹时，计算最新两点的方向角（修复核心）
+    const lastPoint = this.trackPoints[this.trackPoints.length - 2];
+    const currentPoint = this.currentPosition;
+
+    // 1. 计算经纬度差值（弧度）
+    const deltaLng = Cesium.Math.toRadians(currentPoint.lng - lastPoint.lng);
+    const deltaLat = Cesium.Math.toRadians(currentPoint.lat - lastPoint.lat);
+
+    // 2. 用 Cesium 内置方法计算方位角（替代 atan2）
+    // 公式：heading = arctan2(deltaLng * cos(lat), deltaLat)
+    const currentLatRad = Cesium.Math.toRadians(currentPoint.lat);
+    const headingRad = Math.atan2(
+      deltaLng * Math.cos(currentLatRad), // 考虑纬度对经度差的影响
+      deltaLat
+    );
+
+    // 3. 转换为角度（Cesium 方向角以弧度为单位，范围 [-π, π]）
     return Cesium.Transforms.headingPitchRollQuaternion(
       this._getCurrentCartesian(),
-      new Cesium.HeadingPitchRoll(0, 0, 0)
+      new Cesium.HeadingPitchRoll(headingRad, 0, 0)
     );
   }
-
-  // 有历史轨迹时，计算最新两点的方向角（修复核心）
-  const lastPoint = this.trackPoints[this.trackPoints.length - 2];
-  const currentPoint = this.currentPosition;
-
-  // 1. 计算经纬度差值（弧度）
-  const deltaLng = Cesium.Math.toRadians(currentPoint.lng - lastPoint.lng);
-  const deltaLat = Cesium.Math.toRadians(currentPoint.lat - lastPoint.lat);
-
-  // 2. 用 Cesium 内置方法计算方位角（替代 atan2）
-  // 公式：heading = arctan2(deltaLng * cos(lat), deltaLat)
-  const currentLatRad = Cesium.Math.toRadians(currentPoint.lat);
-  const headingRad = Math.atan2(
-    deltaLng * Math.cos(currentLatRad), // 考虑纬度对经度差的影响
-    deltaLat
-  );
-
-  // 3. 转换为角度（Cesium 方向角以弧度为单位，范围 [-π, π]）
-  return Cesium.Transforms.headingPitchRollQuaternion(
-    this._getCurrentCartesian(),
-    new Cesium.HeadingPitchRoll(headingRad, 0, 0)
-  );
-}
 
   // 销毁实体（清理资源）
   destroy() {
@@ -155,9 +155,15 @@ _getOrientation() {
   }
 
   // 公共方法（获取数据）
-  getCurrentPosition() { return { ...this.currentPosition }; }
-  getTrackPoints() { return [...this.trackPoints]; }
-  getId() { return this.id; }
+  getCurrentPosition() {
+    return { ...this.currentPosition };
+  }
+  getTrackPoints() {
+    return [...this.trackPoints];
+  }
+  getId() {
+    return this.id;
+  }
 }
 
 /**
@@ -189,12 +195,7 @@ export class RealtimeDroneManager {
     }
 
     // 创建新无人机（仅传递实时位置，无时间采样）
-    const drone = new RealtimeDrone(
-      id,
-      position,
-      this.viewer,
-      maxTrackPoints
-    );
+    const drone = new RealtimeDrone(id, position, this.viewer, maxTrackPoints);
     this.drones.set(id, drone);
     this.entityIds.add(mainEntityId);
     this.entityIds.add(trailEntityId);
@@ -247,13 +248,12 @@ export class RealtimeDroneManager {
     return true;
   }
 
-
   /**
    * 清空所有无人机（同步清理注册表）
    */
   clearAllDrones() {
     // 1. 销毁所有实体
-    this.drones.forEach(drone => drone.destroy());
+    this.drones.forEach((drone) => drone.destroy());
 
     // 2. 清空注册表和实例Map
     this.drones.clear();
@@ -266,18 +266,20 @@ export class RealtimeDroneManager {
   subscribeToUpdates(listener) {
     this.updateListeners.push(listener);
     return () => {
-      this.updateListeners = this.updateListeners.filter(l => l !== listener);
+      this.updateListeners = this.updateListeners.filter((l) => l !== listener);
     };
   }
 
   _notifyListeners() {
-    this.updateListeners.forEach(listener => {
+    this.updateListeners.forEach((listener) => {
       try {
-        listener(this.getAllDrones().map(drone => ({
-          id: drone.getId(),
-          currentPosition: drone.getCurrentPosition(),
-          trackPoints: drone.getTrackPoints()
-        })));
+        listener(
+          this.getAllDrones().map((drone) => ({
+            id: drone.getId(),
+            currentPosition: drone.getCurrentPosition(),
+            trackPoints: drone.getTrackPoints(),
+          }))
+        );
       } catch (e) {
         console.error('Listener error:', e);
       }
